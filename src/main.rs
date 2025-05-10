@@ -33,5 +33,16 @@ fn main() {
             println!("Showing summary for month: {:?}", month);
             // Call summary logic here
         }
+
+        Commands::Update {
+            id,
+            amount,
+            description,
+        } => {
+            println!(
+                "Updating expense with ID: {} {:?} {:?}",
+                id, amount, description
+            );
+        }
     }
 }
