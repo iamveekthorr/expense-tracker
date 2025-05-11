@@ -89,8 +89,10 @@ mod tests {
 
     #[test]
     fn it_should_delete_expense() {
+        let id = 1;
+
         let expense = Expense {
-            id: 1,
+            id,
             amount: 20,
             category: Some(String::from("subscriptions")),
             description: String::from("Bought data plan from glo"),
@@ -100,9 +102,9 @@ mod tests {
 
         ex.add_expense(expense);
 
-        let message = ex.delete_expense(1);
+        let message = ex.delete_expense(id);
 
-        assert_eq!(Some("Deleted successfullya"), message);
+        assert_eq!(Some("Deleted successfully"), message);
     }
 
     #[test]
@@ -121,6 +123,34 @@ mod tests {
 
         assert_eq!(ex.expenses.len(), 1);
     }
+
     #[test]
-    fn it_should_update_expense() {}
+    fn it_should_update_expense() {
+        let id = 1;
+
+        let expense = Expense {
+            id,
+            amount: 20,
+            category: Some(String::from("subscriptions")),
+            description: String::from("Bought data plan from glo"),
+        };
+
+        let mut ex = Expenses::new();
+
+        // add an expense
+        ex.add_expense(expense);
+
+        let description = String::from("Updated value");
+
+        let update_expense = UpdateExpense {
+            amount: Some(20),
+            category: None,
+            description: Some(description),
+        };
+
+        // update the expense
+        let message = ex.update_expense(id, update_expense);
+
+        assert_eq!(Some("Updated successfully!"), message);
+    }
 }
