@@ -237,4 +237,50 @@ mod tests {
 
         assert_eq!(Some("Updated successfully!"), message);
     }
+
+    #[test]
+    fn it_should_sum_expenses_by_month() {
+        let amount = 20;
+        let category = Some(String::from("subscriptions"));
+        let description = String::from("Bought data plan from glo");
+
+        let mut ex = Expenses::new();
+
+        // add an expense
+        ex.add_expense(description, amount, category);
+
+        // show summary by month
+        let month = Some(5); // 5th month is May
+
+        let (result, month_name) = ex.summary(month, None).unwrap();
+
+        // show 20.0 as float
+        assert_eq!(result, 20.0);
+
+        // show month name
+        assert_eq!(month_name.unwrap(), "May")
+    }
+
+    #[test]
+    fn it_should_sum_expenses() {
+        let mut amount = 20;
+        let mut category = Some(String::from("subscriptions"));
+        let mut description = String::from("Bought data plan from glo");
+
+        let mut ex = Expenses::new();
+
+        // add an expense
+        ex.add_expense(description, amount, category);
+
+        amount = 100;
+        category = Some(String::from("New CAT"));
+        description = String::from("New Description");
+
+        ex.add_expense(description, amount, category);
+
+        let (result, _) = ex.summary(None, None).unwrap();
+
+        // show 120.0 as float
+        assert_eq!(result, 120.0);
+    }
 }
