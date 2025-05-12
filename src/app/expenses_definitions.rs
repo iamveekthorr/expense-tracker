@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Expense {
-    id: u32,
-    description: String,
-    amount: u32,
-    category: Option<String>,
-    date_created: NaiveDate,
+    pub id: u32,
+    pub description: String,
+    pub amount: u32,
+    pub category: Option<String>,
+    pub date_created: NaiveDate,
     date_updated: Option<NaiveDate>,
 }
 

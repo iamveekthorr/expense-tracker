@@ -49,12 +49,16 @@ pub fn run() {
 
         Commands::List => {
             if let Some(list) = expenses.list_expenses() {
-                // format to readable json string
-                let json_string = serde_json::to_string_pretty(list)
-                    .map_err(|_| format!("unable to format to JSON"))
-                    .unwrap_or(String::from("Something went wrong"));
-
-                println!("{}", json_string);
+                println!(
+                    "{:<3} {:<10} {:<20} {:>6}",
+                    "ID", "Date", "Description", "Amount (NGN)"
+                );
+                for expense in list {
+                    println!(
+                        "{:<3} {:<10} {:<20} {:<5} NGN",
+                        expense.id, expense.date_created, expense.description, expense.amount
+                    );
+                }
             };
         }
 
