@@ -1,3 +1,4 @@
+use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -6,6 +7,8 @@ pub struct Expense {
     description: String,
     amount: u32,
     category: Option<String>,
+    date_created: NaiveDate,
+    date_updated: Option<NaiveDate>,
 }
 
 struct UpdateExpense {
@@ -30,11 +33,15 @@ impl Expenses {
         amount: u32,
         category: Option<String>,
     ) -> Option<&'static str> {
+        let created_at = Local::now().naive_local().date();
+
         let expense = Expense {
             id: self.next_id(),
             amount,
             description,
             category,
+            date_created: created_at,
+            date_updated: None,
         };
 
         self.expenses.push(expense);
@@ -87,14 +94,76 @@ impl Expenses {
                 if let Some(category) = new_expense.category {
                     expense.category = Some(category);
                 }
+
+                // update the field holding the updated_at date
+                expense.date_updated = Some(Local::now().naive_local().date());
+
                 return Some("Updated successfully!");
             }
         }
         None
     }
 
+    pub fn summary(
+        &self,
+        month: Option<u8>,
+        year: Option<String>,
+    ) -> Option<(f64, Option<&'static str>)> {
+        let mut sum = 0.0;
+        let mut month_name: Option<&'static str> = None;
+
+        for expense in &self.expenses {
+            let mut matches = true;
+
+            if let Some(month_flag) = month {
+                month_name = Some(Self::get_month_name(month_flag as u32));
+                // cast u8 -> u32 to enable comparison
+                if expense.date_created.month() != month_flag as u32 {
+                    matches = false;
+                }
+            }
+
+            if let Some(year_flag) = &year {
+                match year_flag.parse::<i32>() {
+                    Ok(parsed_year) => {
+                        if expense.date_created.year() != parsed_year {
+                            matches = false;
+                        }
+                    }
+                    Err(_) => {
+                        matches = false;
+                    }
+                }
+            }
+
+            if matches {
+                sum += expense.amount as f64;
+            }
+        }
+
+        Some((sum.ceil(), month_name))
+    }
+
     fn next_id(&self) -> u32 {
         self.expenses.iter().map(|item| item.id).max().unwrap_or(0) + 1
+    }
+
+    fn get_month_name(month: u32) -> &'static str {
+        match month {
+            1 => "January",
+            2 => "February",
+            3 => "March",
+            4 => "April",
+            5 => "May",
+            6 => "June",
+            7 => "July",
+            8 => "August",
+            9 => "September",
+            10 => "October",
+            11 => "November",
+            12 => "December",
+            _ => "Unknown",
+        }
     }
 }
 
@@ -167,5 +236,51 @@ mod tests {
         let message = ex.update_expense(id, description, amount, category);
 
         assert_eq!(Some("Updated successfully!"), message);
+    }
+
+    #[test]
+    fn it_should_sum_expenses_by_month() {
+        let amount = 20;
+        let category = Some(String::from("subscriptions"));
+        let description = String::from("Bought data plan from glo");
+
+        let mut ex = Expenses::new();
+
+        // add an expense
+        ex.add_expense(description, amount, category);
+
+        // show summary by month
+        let month = Some(5); // 5th month is May
+
+        let (result, month_name) = ex.summary(month, None).unwrap();
+
+        // show 20.0 as float
+        assert_eq!(result, 20.0);
+
+        // show month name
+        assert_eq!(month_name.unwrap(), "May")
+    }
+
+    #[test]
+    fn it_should_sum_expenses() {
+        let mut amount = 20;
+        let mut category = Some(String::from("subscriptions"));
+        let mut description = String::from("Bought data plan from glo");
+
+        let mut ex = Expenses::new();
+
+        // add an expense
+        ex.add_expense(description, amount, category);
+
+        amount = 100;
+        category = Some(String::from("New CAT"));
+        description = String::from("New Description");
+
+        ex.add_expense(description, amount, category);
+
+        let (result, _) = ex.summary(None, None).unwrap();
+
+        // show 120.0 as float
+        assert_eq!(result, 120.0);
     }
 }
