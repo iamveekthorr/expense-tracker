@@ -8,7 +8,7 @@ pub struct Expense {
     category: Option<String>,
 }
 
-pub struct UpdateExpense {
+struct UpdateExpense {
     description: Option<String>,
     amount: Option<u32>,
     category: Option<String>,
@@ -24,8 +24,21 @@ impl Expenses {
         Self { expenses: vec![] }
     }
 
-    pub fn add_expense(&mut self, expense: Expense) -> Option<&'static str> {
+    pub fn add_expense(
+        &mut self,
+        description: String,
+        amount: u32,
+        category: Option<String>,
+    ) -> Option<&'static str> {
+        let expense = Expense {
+            id: self.next_id(),
+            amount,
+            description,
+            category,
+        };
+
         self.expenses.push(expense);
+
         Some("Created successfully!")
     }
 
@@ -48,12 +61,25 @@ impl Expenses {
         Some("Deleted successfully")
     }
 
-    pub fn update_expense(&mut self, id: u32, new_expense: UpdateExpense) -> Option<&'static str> {
+    pub fn update_expense(
+        &mut self,
+        id: u32,
+        description: Option<String>,
+        amount: Option<u32>,
+        category: Option<String>,
+    ) -> Option<&'static str> {
+        let new_expense = UpdateExpense {
+            amount,
+            category,
+            description,
+        };
+
         for expense in &mut self.expenses {
             if expense.id == id {
                 if let Some(amount) = new_expense.amount {
                     expense.amount = amount;
                 }
+
                 if let Some(description) = new_expense.description {
                     expense.description = description;
                 }
@@ -66,6 +92,10 @@ impl Expenses {
         }
         None
     }
+
+    fn next_id(&self) -> u32 {
+        self.expenses.iter().map(|item| item.id).max().unwrap_or(0) + 1
+    }
 }
 
 #[cfg(test)]
@@ -74,15 +104,13 @@ mod tests {
 
     #[test]
     fn it_should_add_expense() {
-        let expense = Expense {
-            id: 1,
-            amount: 20,
-            category: Some(String::from("subscriptions")),
-            description: String::from("Bought data plan from glo"),
-        };
+        let amount = 20;
+        let category = Some(String::from("subscriptions"));
+        let description = String::from("Bought data plan from glo");
 
-        let mut expenses = Expenses::new();
-        let message = expenses.add_expense(expense);
+        let mut ex = Expenses::new();
+
+        let message = ex.add_expense(description, amount, category);
 
         assert_eq!(Some("Created successfully!"), message);
     }
@@ -91,16 +119,13 @@ mod tests {
     fn it_should_delete_expense() {
         let id = 1;
 
-        let expense = Expense {
-            id,
-            amount: 20,
-            category: Some(String::from("subscriptions")),
-            description: String::from("Bought data plan from glo"),
-        };
+        let amount = 20;
+        let category = Some(String::from("subscriptions"));
+        let description = String::from("Bought data plan from glo");
 
         let mut ex = Expenses::new();
 
-        ex.add_expense(expense);
+        ex.add_expense(description, amount, category);
 
         let message = ex.delete_expense(id);
 
@@ -112,14 +137,11 @@ mod tests {
         let mut ex = Expenses::new();
         assert_eq!(ex.expenses.len(), 0);
 
-        let expense = Expense {
-            id: 1,
-            amount: 20,
-            category: Some(String::from("subscriptions")),
-            description: String::from("Bought data plan from glo"),
-        };
+        let amount = 20;
+        let category = Some(String::from("subscriptions"));
+        let description = String::from("Bought data plan from glo");
 
-        ex.add_expense(expense);
+        ex.add_expense(description, amount, category);
 
         assert_eq!(ex.expenses.len(), 1);
     }
@@ -128,28 +150,21 @@ mod tests {
     fn it_should_update_expense() {
         let id = 1;
 
-        let expense = Expense {
-            id,
-            amount: 20,
-            category: Some(String::from("subscriptions")),
-            description: String::from("Bought data plan from glo"),
-        };
+        let amount = 20;
+        let category = Some(String::from("subscriptions"));
+        let description = String::from("Bought data plan from glo");
 
         let mut ex = Expenses::new();
 
         // add an expense
-        ex.add_expense(expense);
+        ex.add_expense(description, amount, category);
 
-        let description = String::from("Updated value");
-
-        let update_expense = UpdateExpense {
-            amount: Some(20),
-            category: None,
-            description: Some(description),
-        };
+        let amount = Some(50);
+        let category = Some(String::from("Miscellaneous"));
+        let description = Some(String::from("Updated value"));
 
         // update the expense
-        let message = ex.update_expense(id, update_expense);
+        let message = ex.update_expense(id, description, amount, category);
 
         assert_eq!(Some("Updated successfully!"), message);
     }

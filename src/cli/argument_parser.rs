@@ -30,8 +30,15 @@ pub enum Commands {
     Update {
         #[arg(short, long)]
         id: u32,
+
+        #[arg(short, long)]
         amount: Option<u32>,
+
+        #[arg(short, long)]
         description: Option<String>,
+
+        #[arg(short, long)]
+        category: Option<String>,
     },
 
     /// List all expenses
