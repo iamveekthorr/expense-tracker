@@ -48,5 +48,8 @@ pub enum Commands {
     Summary {
         #[arg(short, long)]
         month: Option<u8>,
+
+        #[arg(short, long)]
+        year: Option<String>,
     },
 }
