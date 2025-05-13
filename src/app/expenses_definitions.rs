@@ -11,10 +11,11 @@ pub struct Expense {
     pub date_updated: Option<NaiveDate>,
 }
 
-struct UpdateExpense {
-    description: Option<String>,
-    amount: Option<u32>,
-    category: Option<String>,
+pub struct UpdateExpense {
+    pub id: u32,
+    pub description: Option<String>,
+    pub amount: Option<u32>,
+    pub category: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -68,21 +69,16 @@ impl Expenses {
         Some("Deleted successfully")
     }
 
-    pub fn update_expense(
-        &mut self,
-        id: u32,
-        description: Option<String>,
-        amount: Option<u32>,
-        category: Option<String>,
-    ) -> Option<&'static str> {
+    pub fn update_expense(&mut self, update_expense: UpdateExpense) -> Option<&'static str> {
         let new_expense = UpdateExpense {
-            amount,
-            category,
-            description,
+            id: update_expense.id,
+            amount: update_expense.amount,
+            category: update_expense.category,
+            description: update_expense.description,
         };
 
         for expense in &mut self.expenses {
-            if expense.id == id {
+            if expense.id == update_expense.id {
                 if let Some(amount) = new_expense.amount {
                     expense.amount = amount;
                 }
@@ -232,8 +228,15 @@ mod tests {
         let category = Some(String::from("Miscellaneous"));
         let description = Some(String::from("Updated value"));
 
+        let update_expense = UpdateExpense {
+            id,
+            description,
+            amount,
+            category,
+        };
+
         // update the expense
-        let message = ex.update_expense(id, description, amount, category);
+        let message = ex.update_expense(update_expense);
 
         assert_eq!(Some("Updated successfully!"), message);
     }

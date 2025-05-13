@@ -1,6 +1,9 @@
 use clap::Parser;
 
-use crate::cli::argument_parser::{Args, Commands};
+use crate::{
+    app::expenses_definitions::UpdateExpense,
+    cli::argument_parser::{Args, Commands},
+};
 
 use super::{
     expenses_definitions::Expenses,
@@ -85,8 +88,15 @@ pub fn run() {
                 }
             }
 
+            let update_expense = UpdateExpense {
+                amount,
+                category,
+                description,
+                id,
+            };
+
             let msg = expenses
-                .update_expense(id, description, amount, category)
+                .update_expense(update_expense)
                 .unwrap_or("No expense found with that id");
 
             // save to file
