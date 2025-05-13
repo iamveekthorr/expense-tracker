@@ -33,7 +33,7 @@ expense-tracker/
 │   ├── app/
 │   │   ├── build.rs              # Main CLI logic and command dispatcher
 │   │   ├── expenses_definitions.rs  # Data models and expense operations
-│   │   └── storage.rs            # (Assumed) JSON file storage utilities
+│   │   └── storage.rs            # JSON file storage utilities
 ├── data/
 │   └── expenses.json             # File where expenses are stored
 ├── Cargo.toml
