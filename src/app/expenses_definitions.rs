@@ -8,7 +8,7 @@ pub struct Expense {
     pub amount: u32,
     pub category: Option<String>,
     pub date_created: NaiveDate,
-    date_updated: Option<NaiveDate>,
+    pub date_updated: Option<NaiveDate>,
 }
 
 struct UpdateExpense {
