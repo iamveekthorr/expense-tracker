@@ -42,7 +42,10 @@ pub enum Commands {
     },
 
     /// List all expenses
-    List,
+    List {
+        #[arg(short, long)]
+        category: Option<String>,
+    },
 
     /// Show monthly summary
     Summary {

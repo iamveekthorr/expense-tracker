@@ -1,7 +1,7 @@
 use clap::Parser;
 
 use crate::{
-    app::expenses_definitions::UpdateExpense,
+    app::expenses_definitions::{CreateExpense, UpdateExpense},
     cli::argument_parser::{Args, Commands},
 };
 
@@ -28,8 +28,14 @@ pub fn run() {
                 panic!("Amount cannot be less than 1 got {amount}");
             }
 
+            let expense = CreateExpense {
+                description,
+                amount,
+                category,
+            };
+
             let msg = expenses
-                .add_expense(description, amount, category)
+                .add_expense(expense)
                 .unwrap_or("Something went wrong while adding expense");
 
             // save to file
@@ -50,16 +56,16 @@ pub fn run() {
             println!("{msg}: {id}");
         }
 
-        Commands::List => {
-            if let Some(list) = expenses.list_expenses() {
+        Commands::List { category } => {
+            if let Some(list) = expenses.list_expenses(category) {
                 println!(
                     "{:<3} {:<10} {:<20} {:>6}",
-                    "ID", "Date", "Description", "Amount (NGN)"
+                    "ID", "Date", "Description", "Amount (NGN)",
                 );
                 for expense in list {
                     println!(
                         "{:<3} {:<10} {:<20} {:<5} NGN",
-                        expense.id, expense.date_created, expense.description, expense.amount
+                        expense.id, expense.date_created, expense.description, expense.amount,
                     );
                 }
             };
