@@ -104,5 +104,10 @@ pub fn run() {
 
             println!("{msg}");
         }
+
+        Commands::Export { format } => {
+            let file_format = format.as_deref();
+            expenses.export_data_using_file_format(file_format);
+        }
     }
 }

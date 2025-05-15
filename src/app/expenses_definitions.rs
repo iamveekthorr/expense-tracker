@@ -1,6 +1,8 @@
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
+use super::storage::export_as_csv;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Expense {
     pub id: u32,
@@ -138,6 +140,16 @@ impl Expenses {
         }
 
         Some((sum.ceil(), month_name))
+    }
+
+    pub fn export_data_using_file_format(&self, format: Option<&str>) {
+        let path_for_csv = "data/expenses.csv";
+        let data = &self.expenses;
+
+        match format {
+            Some("csv") => export_as_csv(path_for_csv, data),
+            _ => panic!("Invalid file format"),
+        }
     }
 
     fn next_id(&self) -> u32 {

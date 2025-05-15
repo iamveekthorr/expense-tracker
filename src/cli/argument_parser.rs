@@ -52,4 +52,10 @@ pub enum Commands {
         #[arg(short, long)]
         year: Option<String>,
     },
+
+    /// Export data using file format
+    Export {
+        #[arg(short, long)]
+        format: Option<String>,
+    },
 }

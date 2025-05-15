@@ -1,9 +1,10 @@
 use std::{
-    fs::{self, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::{BufReader, Error},
     path::Path,
 };
 
+use csv::Writer;
 use serde::{Deserialize, Serialize};
 
 pub fn save_to_file<T>(path: &str, data: &T) -> Result<(), Error>
@@ -35,4 +36,34 @@ where
 
     let expenses = serde_json::from_reader(reader)?;
     Ok(expenses)
+}
+
+pub fn export_as_csv<I, T>(path: &str, data: I)
+where
+    I: IntoIterator<Item = T>,
+    T: Serialize,
+{
+    // Create file if it doesn't exist
+    let file = match File::create(path) {
+        Ok(file) => file,
+        Err(err) => {
+            eprintln!("Failed to create CSV file: {err}");
+            return;
+        }
+    };
+
+    // write data into file
+    let mut writer = Writer::from_writer(file);
+
+    for item in data {
+        if let Err(err) = writer.serialize(item) {
+            eprintln!("Failed to write item to CSV: {err}");
+        }
+    }
+
+    if let Err(err) = writer.flush() {
+        eprintln!("Failed to flush CSV writer: {err}");
+    } else {
+        println!("Data exported to {path}");
+    }
 }
