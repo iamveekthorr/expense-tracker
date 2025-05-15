@@ -152,7 +152,7 @@ All expenses are stored in `data/expenses.json` using the following structure:
 ## 📌 Features in Progress
 
 - [ ] Filter by category
-- [ ] Export to CSV
+- [x] Export to CSV
 - [ ] Import expenses
 - [ ] Budget warnings
 
