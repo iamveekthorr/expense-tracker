@@ -56,7 +56,7 @@ impl Expenses {
     pub fn list_expenses(&self, category: Option<String>) -> Option<Vec<&Expense>> {
         if let Some(cat) = category {
             let cat = cat.to_lowercase(); // shadow the variable
-            let expenses = self
+            let filtered = self
                 .expenses
                 .iter()
                 .filter(|ex| {
@@ -67,9 +67,10 @@ impl Expenses {
                 })
                 .collect::<Vec<&Expense>>();
 
-            Some(expenses)
+            return Some(filtered);
         } else {
-            Some(self.expenses.iter().collect())
+            let all_expenses = self.expenses.iter().collect::<Vec<&Expense>>();
+            Some(all_expenses)
         }
     }
 
