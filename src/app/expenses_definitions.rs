@@ -12,6 +12,12 @@ pub struct Expense {
     pub date_created: NaiveDate,
     pub date_updated: Option<NaiveDate>,
 }
+#[derive(Debug)]
+pub struct CreateExpense {
+    pub description: String,
+    pub amount: u32,
+    pub category: Option<String>,
+}
 
 pub struct UpdateExpense {
     pub id: u32,
@@ -30,19 +36,14 @@ impl Expenses {
         Self { expenses: vec![] }
     }
 
-    pub fn add_expense(
-        &mut self,
-        description: String,
-        amount: u32,
-        category: Option<String>,
-    ) -> Option<&'static str> {
+    pub fn add_expense(&mut self, data: CreateExpense) -> Option<&'static str> {
         let created_at = Local::now().naive_local().date();
 
         let expense = Expense {
             id: self.next_id(),
-            amount,
-            description,
-            category,
+            amount: data.amount,
+            description: data.description,
+            category: data.category,
             date_created: created_at,
             date_updated: None,
         };
@@ -52,8 +53,24 @@ impl Expenses {
         Some("Created successfully!")
     }
 
-    pub fn list_expenses(&self) -> Option<&[Expense]> {
-        Some(&self.expenses)
+    pub fn list_expenses(&self, category: Option<String>) -> Option<Vec<&Expense>> {
+        if let Some(cat) = category {
+            let cat = cat.to_lowercase(); // shadow the variable
+            let expenses = self
+                .expenses
+                .iter()
+                .filter(|ex| {
+                    ex.category
+                        .as_ref()
+                        .map(|c| c.to_lowercase() == cat)
+                        .unwrap_or(false)
+                })
+                .collect::<Vec<&Expense>>();
+
+            Some(expenses)
+        } else {
+            Some(self.expenses.iter().collect())
+        }
     }
 
     pub fn delete_expense(&mut self, id: u32) -> Option<&'static str> {
@@ -181,13 +198,15 @@ mod tests {
 
     #[test]
     fn it_should_add_expense() {
-        let amount = 20;
-        let category = Some(String::from("subscriptions"));
-        let description = String::from("Bought data plan from glo");
+        let expense = CreateExpense {
+            amount: 20,
+            category: Some(String::from("subscriptions")),
+            description: String::from("Bought data plan from glo"),
+        };
 
         let mut ex = Expenses::new();
 
-        let message = ex.add_expense(description, amount, category);
+        let message = ex.add_expense(expense);
 
         assert_eq!(Some("Created successfully!"), message);
     }
@@ -196,13 +215,14 @@ mod tests {
     fn it_should_delete_expense() {
         let id = 1;
 
-        let amount = 20;
-        let category = Some(String::from("subscriptions"));
-        let description = String::from("Bought data plan from glo");
-
+        let expense = CreateExpense {
+            amount: 20,
+            category: Some(String::from("subscriptions")),
+            description: String::from("Bought data plan from glo"),
+        };
         let mut ex = Expenses::new();
 
-        ex.add_expense(description, amount, category);
+        ex.add_expense(expense);
 
         let message = ex.delete_expense(id);
 
@@ -214,27 +234,54 @@ mod tests {
         let mut ex = Expenses::new();
         assert_eq!(ex.expenses.len(), 0);
 
-        let amount = 20;
+        let expense = CreateExpense {
+            amount: 20,
+            category: None,
+            description: String::from("Bought data plan from glo"),
+        };
+
+        ex.add_expense(expense);
+
+        let expenses = ex.list_expenses(None).unwrap();
+
+        assert_eq!(expenses.len(), ex.expenses.len());
+    }
+
+    #[test]
+    fn it_should_list_expenses_by_category() {
+        let mut ex = Expenses::new();
+        assert_eq!(ex.expenses.len(), 0);
+
         let category = Some(String::from("subscriptions"));
-        let description = String::from("Bought data plan from glo");
+        let expense = CreateExpense {
+            amount: 20,
+            category,
+            description: String::from("Bought data plan from glo"),
+        };
 
-        ex.add_expense(description, amount, category);
+        ex.add_expense(expense);
 
-        assert_eq!(ex.expenses.len(), 1);
+        let expenses = ex
+            .list_expenses(Some(String::from("subscriptions")))
+            .unwrap();
+
+        assert_eq!(ex.expenses.len(), expenses.len());
     }
 
     #[test]
     fn it_should_update_expense() {
         let id = 1;
 
-        let amount = 20;
-        let category = Some(String::from("subscriptions"));
-        let description = String::from("Bought data plan from glo");
+        let expense = CreateExpense {
+            amount: 20,
+            category: Some(String::from("subscriptions")),
+            description: String::from("Bought data plan from glo"),
+        };
 
         let mut ex = Expenses::new();
 
         // add an expense
-        ex.add_expense(description, amount, category);
+        ex.add_expense(expense);
 
         let amount = Some(50);
         let category = Some(String::from("Miscellaneous"));
@@ -255,14 +302,16 @@ mod tests {
 
     #[test]
     fn it_should_sum_expenses_by_month() {
-        let amount = 20;
-        let category = Some(String::from("subscriptions"));
-        let description = String::from("Bought data plan from glo");
+        let expense = CreateExpense {
+            amount: 20,
+            category: Some(String::from("subscriptions")),
+            description: String::from("Bought data plan from glo"),
+        };
 
         let mut ex = Expenses::new();
 
         // add an expense
-        ex.add_expense(description, amount, category);
+        ex.add_expense(expense);
 
         // show summary by month
         let month = Some(5); // 5th month is May
@@ -278,20 +327,24 @@ mod tests {
 
     #[test]
     fn it_should_sum_expenses() {
-        let mut amount = 20;
-        let mut category = Some(String::from("subscriptions"));
-        let mut description = String::from("Bought data plan from glo");
+        let expense = CreateExpense {
+            amount: 20,
+            category: Some(String::from("subscriptions")),
+            description: String::from("Bought data plan from glo"),
+        };
 
         let mut ex = Expenses::new();
 
         // add an expense
-        ex.add_expense(description, amount, category);
+        ex.add_expense(expense);
 
-        amount = 100;
-        category = Some(String::from("New CAT"));
-        description = String::from("New Description");
+        let expense_2 = CreateExpense {
+            amount: 100,
+            category: Some(String::from("New CAT")),
+            description: String::from("New Description"),
+        };
 
-        ex.add_expense(description, amount, category);
+        ex.add_expense(expense_2);
 
         let (result, _) = ex.summary(None, None).unwrap();
 
